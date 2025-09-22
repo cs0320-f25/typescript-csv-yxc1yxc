@@ -25,6 +25,12 @@ export interface ParseResult<T> {
   }>;
 }
 
+
+/**
+ * @param path The path to the file being loaded.
+ * @param schema Optional Zod schema to validate each row against.
+ * @returns either a list of ParseResult if schema is provided, or a 2-d array of strings otherwise.
+ */
 export async function parseCSV<T>(path: string, schema?: z.ZodType<T>): Promise<ParseResult<T> | string[][]> {
   // This initial block of code reads from a file in Node.js. The "rl"
   // value can be iterated over in a "for" loop. 

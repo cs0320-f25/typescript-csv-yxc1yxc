@@ -27,10 +27,13 @@ I chose linkedlist as the datastructure. For json, simply do a nested structure 
 For the schema implementation I mainly asked LLM. 
 
 - #### 1. Correctness
+    I think the most important thing here is to check if your parser can produce the "expected" results, no matter how errorneous the input format is. This requires the parser to be able to handle a lot of different edge cases, more so because this is a parser, the input csv file can have any kind of input format, the parser needs to accomodate for all of them. I think this is correctness.
 
 - #### 2. Random, On-Demand Generation
+    Isn't this called something like fuzz testing? It relies on random generation to test the robustness of your program. Because its random nature, it can potentially identify cases where a human could never think off, and expose these hidden flaws of the program. We can definetly use this generator function to perform comprehensive test on our parser.
 
 - #### 3. Overall experience, Bugs encountered and resolved
+    I didn't encounter much bugs. Most problems coming from I don't know typescript syntax and type issues. 
 #### Errors/Bugs:
 #### Tests: I tested for some parsing edge cases, found one error on comma within quotes. I also tested for zod schema, including normal usage and error handling.
 #### How To…
