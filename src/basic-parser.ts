@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as readline from "readline";
+import { z } from "zod";
 
 /**
  * This is a JSDoc comment. Similar to JavaDoc, it documents a public-facing
@@ -14,7 +15,17 @@ import * as readline from "readline";
  * @param path The path to the file being loaded.
  * @returns a "promise" to produce a 2-d array of cell values
  */
-export async function parseCSV(path: string): Promise<string[][]> {
+// Define an interface for the parser result
+export interface ParseResult<T> {
+  data: T[];
+  errors: Array<{
+    line: string;
+    lineNumber: number;
+    error: z.ZodError;
+  }>;
+}
+
+export async function parseCSV<T>(path: string, schema?: z.ZodType<T>): Promise<ParseResult<T> | string[][]> {
   // This initial block of code reads from a file in Node.js. The "rl"
   // value can be iterated over in a "for" loop. 
   const fileStream = fs.createReadStream(path);
@@ -23,15 +34,41 @@ export async function parseCSV(path: string): Promise<string[][]> {
     crlfDelay: Infinity, // handle different line endings
   });
   
-  // Create an empty array to hold the results
-  let result = []
+  // Create arrays to hold the results and errors
+  let data = []
+  let oldData = []
+  let errors: Array<{ line: string; lineNumber: number; error: z.ZodError }> = [];
+  let lineNumber = 0;
   
   // We add the "await" here because file I/O is asynchronous. 
   // We need to force TypeScript to _wait_ for a row before moving on. 
   // More on this in class soon!
   for await (const line of rl) {
+    lineNumber++;
     const values = line.split(",").map((v) => v.trim());
-    result.push(values)
+    
+    if(schema) {
+      const parseResult = schema.safeParse(values);
+      if(parseResult.success) {
+        data.push(parseResult.data);
+      } else {
+        errors.push({
+          line,
+          lineNumber,
+          error: parseResult.error
+        });
+      }
+    } else {
+      oldData.push(values);
+    }
   }
-  return result
+  
+  if(schema) {
+    return {
+    data,
+    errors
+    }
+  }else{
+    return oldData;
+  }
 }
